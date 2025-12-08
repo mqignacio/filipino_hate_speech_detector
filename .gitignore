@@ -1,4 +1,6 @@
-data/
+data/*
+!data/tagalog_slang_dictionary.json
+!data/tagalog_stopwords.json
 .venv
 .vscode
 .github

@@ -111,7 +111,7 @@ def train_one_epoch(
     for batch_idx, (inputs, targets) in enumerate(loader, start=1):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad(set_to_none=True)
-        with torch.cuda.amp.autocast(enabled=autocast_enabled):
+        with torch.amp.autocast('cuda', enabled=autocast_enabled):
             logits = model(inputs)
             loss = criterion(logits, targets)
 
@@ -181,7 +181,7 @@ def main():
     args = parse_args()
     set_seed(args.seed)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu')
     args.output_dir.mkdir(parents=True, exist_ok=True)
     model_path = args.output_dir / 'sentiment_transformer.pt'
     last_model_path = args.output_dir / 'sentiment_transformer_last.pt'
@@ -241,7 +241,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
-    scaler = torch.cuda.amp.GradScaler(enabled=args.mixed_precision and device.type == 'cuda')
+    scaler = torch.amp.GradScaler('cuda', enabled=args.mixed_precision and device.type == 'cuda')
 
     history: List[Dict[str, Dict[str, float]]] = []
     best_val_accuracy = float('-inf')
